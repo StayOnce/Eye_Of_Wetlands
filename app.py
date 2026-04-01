@@ -1,8 +1,6 @@
 import json
 import os
-from flask import Flask, render_template, jsonify, request
-import numpy as np
-
+from flask import Flask, render_template, jsonify
 app = Flask(__name__)
 
 # 加载数据

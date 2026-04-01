@@ -10,115 +10,25 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Inter', sans-serif;
             background: #F0F2F5;
             color: #2C3E2A;
             overflow-x: hidden;
-            /* 极细微噪点纹理背景 */
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='1' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
         }
-
-        .dashboard {
-            max-width: 1600px;
-            margin: 0 auto;
-            padding: 1rem 0.8rem;  /* 左右边距减小 */
-            position: relative;
-        }
-
-        /* 顶部标题栏 */
-        .title-bar {
-            margin-bottom: 1.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #E0E8D8;
-            padding-bottom: 0.75rem;
-        }
-        .title-bar h1 {
-            font-size: 1.6rem;
-            font-weight: 600;
-            color: #3C5E34;
-            letter-spacing: -0.5px;
-        }
-        .title-bar h1 i {
-            color: #6A8E5C;
-            margin-right: 8px;
-        }
-
-        /* 诊断按钮（点击切换） */
-        .diagnostic-btn-wrapper {
-            position: relative;
-            display: inline-block;
-        }
-        .diagnostic-btn {
-            background: #FAFAF8;
-            border: 1px solid #E0E8D8;
-            padding: 0.5rem 1rem;
-            border-radius: 40px;
-            font-size: 0.8rem;
-            font-weight: 500;
-            color: #5F7E4A;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
-        }
-        .diagnostic-btn i {
-            font-size: 0.9rem;
-            color: #E8A735;
-        }
-        .diagnostic-btn:hover {
-            background: #FFFFFF;
-            border-color: #C8DCBA;
-        }
-        .click-panel {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            margin-top: 12px;
-            width: 320px;
-            background: #FAFAF8;
-            border-radius: 20px;
-            box-shadow: 0 12px 28px -8px rgba(0,0,0,0.08);
-            padding: 1rem;
-            z-index: 100;
-            display: none;
-            border: 1px solid #ECF1E6;
-        }
-        .click-panel.show {
-            display: block;
-        }
-        .click-panel h4 {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: #3C5E34;
-            margin-bottom: 0.75rem;
-            border-left: 3px solid #E8A735;
-            padding-left: 10px;
-        }
-        .warning-list-panel {
-            max-height: 280px;
-            overflow-y: auto;
-        }
-        .warning-item-panel {
-            background: #FFFCF5;
-            padding: 0.6rem;
-            margin-bottom: 0.6rem;
-            border-radius: 12px;
-            font-size: 0.7rem;
-            border-left: 3px solid #C7A56B;
-        }
-
-        /* 大屏网格布局 */
+        .dashboard { max-width: 1600px; margin: 0 auto; padding: 1rem 0.8rem; }
+        .title-bar { margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #E0E8D8; padding-bottom: 0.75rem; }
+        .title-bar h1 { font-size: 1.6rem; font-weight: 600; color: #3C5E34; letter-spacing: -0.5px; }
+        .title-bar h1 i { color: #6A8E5C; margin-right: 8px; }
+        .diagnostic-btn-wrapper { position: relative; display: inline-block; }
+        .diagnostic-btn { background: #FAFAF8; border: 1px solid #E0E8D8; padding: 0.5rem 1rem; border-radius: 40px; font-size: 0.8rem; font-weight: 500; color: #5F7E4A; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+        .diagnostic-btn i { color: #E8A735; }
+        .click-panel { position: absolute; top: 100%; right: 0; margin-top: 12px; width: 320px; background: #FAFAF8; border-radius: 20px; box-shadow: 0 12px 28px -8px rgba(0,0,0,0.08); padding: 1rem; z-index: 100; display: none; border: 1px solid #ECF1E6; }
+        .click-panel.show { display: block; }
+        .warning-list-panel { max-height: 280px; overflow-y: auto; }
+        .warning-item-panel { background: #FFFCF5; padding: 0.6rem; margin-bottom: 0.6rem; border-radius: 12px; font-size: 0.7rem; border-left: 3px solid #C7A56B; }
         .grid-main {
             display: grid;
             grid-template-areas:
@@ -130,179 +40,22 @@
             gap: 1rem;
             align-items: stretch;
         }
-
-        .card {
-            background: #FAFAF8;
-            border-radius: 24px;
-            box-shadow: 0 6px 14px -6px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
-            transition: transform 0.2s, box-shadow 0.2s;
-            padding: 1rem;
-            display: flex;
-            flex-direction: column;
-        }
-        .card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.08);
-        }
-        .card-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 0.5rem;
-            border-bottom: 1px solid #E8EFE2;
-            padding-bottom: 0.4rem;
-            flex-shrink: 0;
-        }
-        .card-header h3 {
-            font-size: 0.85rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #5F7E4A;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .card-header i {
-            color: #6A8E5C;
-        }
-
-        /* KPI 卡片 */
-        .kpi-card {
-            text-align: center;
-            justify-content: center;
-        }
-        .kpi-label {
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            color: #8FAA82;
-            letter-spacing: 1px;
-        }
-        .kpi-number {
-            font-size: 2.4rem;
-            font-weight: 700;
-            color: #2C3E2A;
-            line-height: 1.2;
-            margin: 0.2rem 0;
-        }
-        .kpi-unit {
-            font-size: 0.7rem;
-            color: #9AB186;
-        }
-        .progress-light {
-            background: #EAF0E4;
-            border-radius: 20px;
-            height: 3px;
-            width: 100%;
-            margin-top: 8px;
-            overflow: hidden;
-        }
-        .progress-fill {
-            background: #6A8E5C;
-            width: 0%;
-            height: 100%;
-            transition: width 0.6s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-        }
-
-        /* 地图区域 */
-        .map-area {
-            grid-area: map;
-            background: #F0F4EC;
-            border-radius: 24px;
-            overflow: hidden;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.03);
-            min-height: 500px;
-            display: flex;
-            flex-direction: column;
-        }
-        #map {
-            width: 100%;
-            flex: 1;
-            background: #E7EDE0;
-            min-height: 480px;
-        }
-
-        /* 图表容器 */
-        .chart-container {
-            flex: 1;
-            width: 100%;
-            min-height: 210px;
-        }
-
-        /* 场景模拟长条 */
-        .scenario-bar {
-            grid-area: scenario;
-            background: #FAFAF8;
-            border-radius: 24px;
-            padding: 0.8rem 1.2rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 1rem;
-            box-shadow: 0 6px 14px -6px rgba(0, 0, 0, 0.04);
-        }
-        .scenario-info {
-            flex: 1;
-            font-size: 0.85rem;
-            color: #5F7E4A;
-        }
-        .scenario-info strong {
-            color: #E8A735;
-            font-weight: 600;
-        }
-        .scenario-detail-text {
-            font-size: 0.8rem;
-            color: #7F9A6E;
-        }
-        .badge-light {
-            background: #F0F5EC;
-            padding: 0.2rem 0.6rem;
-            border-radius: 40px;
-            font-size: 0.65rem;
-            color: #5F7E4A;
-            cursor: pointer;
-            border: none;
-        }
-
-        footer {
-            margin-top: 2rem;
-            text-align: center;
-            font-size: 0.7rem;
-            color: #9AAD8F;
-            border-top: 1px solid #E0E8D8;
-            padding-top: 1rem;
-        }
-
-        @media (max-width: 1000px) {
-            .grid-main {
-                grid-template-areas:
-                    "kpi-left"
-                    "kpi-center"
-                    "kpi-right"
-                    "ei-chart"
-                    "pi-chart"
-                    "map"
-                    "boxplot"
-                    "scatter"
-                    "scenario";
-                grid-template-columns: 1fr;
-            }
-            .map-area {
-                min-height: 380px;
-            }
-        }
-
-        ::-webkit-scrollbar {
-            width: 4px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #ECF2E7;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #B8CDAA;
-            border-radius: 4px;
-        }
+        .card { background: #FAFAF8; border-radius: 24px; box-shadow: 0 6px 14px -6px rgba(0,0,0,0.04); padding: 1rem; display: flex; flex-direction: column; }
+        .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; border-bottom: 1px solid #E8EFE2; padding-bottom: 0.4rem; }
+        .card-header h3 { font-size: 0.85rem; font-weight: 600; text-transform: uppercase; color: #5F7E4A; display: flex; align-items: center; gap: 6px; }
+        .kpi-card { text-align: center; justify-content: center; }
+        .kpi-label { font-size: 0.7rem; text-transform: uppercase; color: #8FAA82; letter-spacing: 1px; }
+        .kpi-number { font-size: 2.4rem; font-weight: 700; color: #2C3E2A; line-height: 1.2; margin: 0.2rem 0; }
+        .kpi-unit { font-size: 0.7rem; color: #9AB186; }
+        .progress-light { background: #EAF0E4; border-radius: 20px; height: 3px; width: 100%; margin-top: 8px; overflow: hidden; }
+        .progress-fill { background: #6A8E5C; width: 0%; height: 100%; transition: width 0.6s; }
+        .map-area { grid-area: map; background: #F0F4EC; border-radius: 24px; overflow: hidden; min-height: 500px; }
+        #map { width: 100%; height: 100%; min-height: 480px; background: #E7EDE0; }
+        .chart-container { flex: 1; width: 100%; min-height: 210px; }
+        .scenario-bar { grid-area: scenario; background: #FAFAF8; border-radius: 24px; padding: 0.8rem 1.2rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+        .badge-light { background: #F0F5EC; padding: 0.2rem 0.6rem; border-radius: 40px; font-size: 0.65rem; color: #5F7E4A; cursor: pointer; border: none; }
+        footer { margin-top: 2rem; text-align: center; font-size: 0.7rem; color: #9AAD8F; border-top: 1px solid #E0E8D8; padding-top: 1rem; }
+        @media (max-width: 1000px) { .grid-main { grid-template-areas: "kpi-left" "kpi-center" "kpi-right" "ei-chart" "pi-chart" "map" "boxplot" "scatter" "scenario"; grid-template-columns: 1fr; } .map-area { min-height: 380px; } }
     </style>
 </head>
 <body>
@@ -310,100 +63,34 @@
     <div class="title-bar">
         <h1><i class="fas fa-eye"></i> 湿地之眼 · 武汉湖泊生态感知分析系统</h1>
         <div class="diagnostic-btn-wrapper">
-            <div class="diagnostic-btn" id="diagnosticTrigger">
-                <i class="fas fa-brain"></i> 智能诊断
-                <i class="fas fa-chevron-down" style="font-size: 0.7rem;"></i>
-            </div>
+            <div class="diagnostic-btn" id="diagnosticTrigger"><i class="fas fa-brain"></i> 智能诊断 <i class="fas fa-chevron-down"></i></div>
             <div id="diagnosticPanel" class="click-panel">
                 <h4><i class="fas fa-robot"></i> 滞后预警 · 大模型诊断</h4>
-                <div id="hover-warning-list" class="warning-list-panel">
-                    <div class="warning-item-panel">加载中...</div>
-                </div>
-                <div style="font-size: 0.7rem; color:#7C9A6E; margin-top: 8px; border-top: 1px solid #ECF1E6; padding-top: 6px;">
-                    <i class="fas fa-microphone-alt"></i> 即将接入GPT对话式归因分析
-                </div>
+                <div id="hover-warning-list" class="warning-list-panel">加载中...</div>
+                <div style="font-size:0.7rem; color:#7C9A6E; margin-top:8px; border-top:1px solid #ECF1E6; padding-top:6px;"><i class="fas fa-microphone-alt"></i> 即将接入GPT对话式归因分析</div>
             </div>
         </div>
     </div>
 
     <div class="grid-main">
-        <!-- KPI -->
-        <div class="card kpi-card" style="grid-area: kpi-left;">
-            <div class="kpi-label">生态质量指数 EI</div>
-            <div class="kpi-number" id="current-ei">0.000</div>
-            <div class="kpi-unit">当前视图 · 最新季度</div>
-            <div class="progress-light"><div class="progress-fill" id="ei-progress"></div></div>
-        </div>
-        <div class="card kpi-card" style="grid-area: kpi-center;">
-            <div class="kpi-label">公众感知指数 PI</div>
-            <div class="kpi-number" id="current-pi">0.000</div>
-            <div class="kpi-unit">社交媒体情感量化</div>
-            <div class="progress-light"><div class="progress-fill" id="pi-progress"></div></div>
-        </div>
-        <div class="card kpi-card" style="grid-area: kpi-right;">
-            <div class="kpi-label">耦合协调度 D</div>
-            <div class="kpi-number" id="current-d">0.000</div>
-            <div class="kpi-unit">生态—感知协同水平</div>
-            <div class="progress-light"><div class="progress-fill" id="d-progress"></div></div>
-        </div>
+        <div class="card kpi-card" style="grid-area: kpi-left;"><div class="kpi-label">生态质量指数 EI</div><div class="kpi-number" id="current-ei">0.000</div><div class="kpi-unit">当前视图 · 最新季度</div><div class="progress-light"><div class="progress-fill" id="ei-progress"></div></div></div>
+        <div class="card kpi-card" style="grid-area: kpi-center;"><div class="kpi-label">公众感知指数 PI</div><div class="kpi-number" id="current-pi">0.000</div><div class="kpi-unit">社交媒体情感量化</div><div class="progress-light"><div class="progress-fill" id="pi-progress"></div></div></div>
+        <div class="card kpi-card" style="grid-area: kpi-right;"><div class="kpi-label">耦合协调度 D</div><div class="kpi-number" id="current-d">0.000</div><div class="kpi-unit">生态—感知协同水平</div><div class="progress-light"><div class="progress-fill" id="d-progress"></div></div></div>
 
-        <!-- EI 时序 -->
-        <div class="card" style="grid-area: ei-chart;">
-            <div class="card-header">
-                <h3><i class="fas fa-leaf"></i> 生态质量指数 EI 时序</h3>
-                <span class="badge-light" id="ei-mode-badge">全局视图</span>
-            </div>
-            <div id="ei-line" class="chart-container"></div>
-        </div>
+        <div class="card" style="grid-area: ei-chart;"><div class="card-header"><h3><i class="fas fa-leaf"></i> 生态质量指数 EI 时序</h3><span class="badge-light" id="ei-mode-badge">全局视图</span></div><div id="ei-line" class="chart-container"></div></div>
+        <div class="card" style="grid-area: pi-chart;"><div class="card-header"><h3><i class="fas fa-smile"></i> 公众感知指数 PI 时序</h3><span class="badge-light" id="pi-mode-badge">全局视图</span></div><div id="pi-line" class="chart-container"></div></div>
+        <div class="card" style="grid-area: boxplot;"><div class="card-header"><h3><i class="fas fa-chart-box"></i> 全局 EI 箱线图</h3><span class="badge-light">季度分布</span></div><div id="boxplot-chart" class="chart-container"></div></div>
+        <div class="card" style="grid-area: scatter;"><div class="card-header"><h3><i class="fas fa-chart-scatter"></i> EI-PI 耦合协调</h3><span class="badge-light" id="scatter-mode-badge">全局视图</span></div><div id="scatter-chart" class="chart-container"></div></div>
 
-        <!-- PI 时序 -->
-        <div class="card" style="grid-area: pi-chart;">
-            <div class="card-header">
-                <h3><i class="fas fa-smile"></i> 公众感知指数 PI 时序</h3>
-                <span class="badge-light" id="pi-mode-badge">全局视图</span>
-            </div>
-            <div id="pi-line" class="chart-container"></div>
-        </div>
+        <div class="map-area"><div id="map"></div></div>
 
-        <!-- 箱线图 -->
-        <div class="card" style="grid-area: boxplot;">
-            <div class="card-header">
-                <h3><i class="fas fa-chart-box"></i> 全局 EI 箱线图</h3>
-                <span class="badge-light">季度分布</span>
-            </div>
-            <div id="boxplot-chart" class="chart-container"></div>
-        </div>
-
-        <!-- 散点图 -->
-        <div class="card" style="grid-area: scatter;">
-            <div class="card-header">
-                <h3><i class="fas fa-chart-scatter"></i> EI-PI 耦合协调</h3>
-                <span class="badge-light" id="scatter-mode-badge">全局视图</span>
-            </div>
-            <div id="scatter-chart" class="chart-container"></div>
-        </div>
-
-        <!-- 地图区域 -->
-        <div class="map-area">
-            <div id="map"></div>
-        </div>
-
-        <!-- 场景模拟长条 -->
-        <div class="scenario-bar">
-            <div class="scenario-info">
-                <i class="fas fa-flask" style="color: #E8A735;"></i>
-                <strong>典型湖泊场景模拟</strong> — 当前关注: <span id="scenario-lake-name">东湖</span>
-            </div>
-            <div id="scenario-text" class="scenario-detail-text">点击地图上的湖泊标记，查看详细生态-感知动态及滞后评估。</div>
-            <button id="reset-global" class="badge-light">重置全局视图</button>
-        </div>
+        <div class="scenario-bar"><div class="scenario-info"><i class="fas fa-flask" style="color:#E8A735;"></i> <strong>典型湖泊场景模拟</strong> — 当前关注: <span id="scenario-lake-name">东湖</span></div><div id="scenario-text" class="scenario-detail-text">点击地图上的湖泊标记，查看详细生态-感知动态及滞后评估。</div><button id="reset-global" class="badge-light">重置全局视图</button></div>
     </div>
-
-    <footer>湿地生态研究队 · 多源遥感+社交媒体耦合 | 点击湖泊联动分析 | 大模型诊断即将上线</footer>
+    <footer>xxxx队</footer>
 </div>
 
 <script>
-    // ========== 全局数据 ==========
+    // 全局数据
     let lakesGlobal = [];
     let allEIseries = {};
     let allPIseries = {};
@@ -413,30 +100,22 @@
     let currentLakeName = "东湖";
 
     let eiLineChart, piLineChart, boxplotChart, scatterChart;
-
-    // 颜色池 (全局视图时使用)
     const colorPalette = ['#6A8E5C', '#8CB87A', '#A6C89A', '#7C9E6E', '#9ABF86', '#5A7F4A', '#B8D2A8', '#6F9660', '#87AA76', '#97B984'];
 
-    // ========== 辅助 ==========
+    // 数字动画
     function animateNumber(element, target, decimals = 3, duration = 1000) {
         let start = parseFloat(element.innerText) || 0;
         if (Math.abs(start - target) < 0.001) return;
-        const stepTime = 20;
-        const steps = duration / stepTime;
-        const increment = (target - start) / steps;
-        let current = start;
-        let step = 0;
+        const stepTime = 20, steps = duration / stepTime, increment = (target - start) / steps;
+        let current = start, step = 0;
         const timer = setInterval(() => {
-            step++;
-            current += increment;
-            if (step >= steps) {
-                current = target;
-                clearInterval(timer);
-            }
+            step++; current += increment;
+            if (step >= steps) { current = target; clearInterval(timer); }
             element.innerText = current.toFixed(decimals);
         }, stepTime);
     }
 
+    // 更新 KPI
     function updateKPI() {
         let eiVal, piVal, dVal;
         if (currentMode === "global") {
@@ -445,8 +124,11 @@
             dVal = lakesGlobal.reduce((s, l) => s + l.d, 0) / lakesGlobal.length;
         } else {
             const lake = lakesGlobal.find(l => l.name === currentLakeName);
-            if (lake) { eiVal = lake.ei; piVal = lake.pi; dVal = lake.d; }
-            else { eiVal = piVal = dVal = 0; }
+            if (lake) {
+                eiVal = lake.ei; piVal = lake.pi; dVal = lake.d;
+            } else {
+                eiVal = piVal = dVal = 0;
+            }
         }
         animateNumber(document.getElementById('current-ei'), eiVal, 3);
         animateNumber(document.getElementById('current-pi'), piVal, 3);
@@ -474,14 +156,13 @@
     function updateHoverPanel() {
         const container = document.getElementById('hover-warning-list');
         if (!lakesGlobal.length) return;
-        const warningsHtml = lakesGlobal.map(lake => {
+        container.innerHTML = lakesGlobal.map(lake => {
             const warn = generateLakeWarning(lake.name);
             return `<div class="warning-item-panel" style="border-left-color: ${warn.severity==='high'?'#C06947':'#C7A56B'}">
                         <strong>${lake.name}</strong> · ${warn.type}<br/>
                         <span style="font-size:0.7rem;">${warn.message}</span>
                     </div>`;
         }).join('');
-        container.innerHTML = warningsHtml;
     }
 
     function updateScenarioBar() {
@@ -489,94 +170,74 @@
         if (!lake) return;
         const eiVals = allEIseries[lake.name];
         const recentEI = eiVals ? eiVals.slice(-3) : [];
-        const trendDesc = (recentEI.length && recentEI[recentEI.length-1] < recentEI[0]) ?
-            '生态趋势下滑，感知滞后风险' : '生态稳定或上升，感知同步良好';
+        const trendDesc = (recentEI.length && recentEI[recentEI.length-1] < recentEI[0]) ? '生态趋势下滑，感知滞后风险' : '生态稳定或上升，感知同步良好';
         document.getElementById('scenario-lake-name').innerText = lake.name;
         document.getElementById('scenario-text').innerHTML = `当前EI: ${lake.ei} | PI: ${lake.pi} | D: ${lake.d} | 趋势: ${trendDesc}`;
     }
 
-    // 核心：更新折线图（支持高亮当前湖泊，其他半透明）
     function updateLineCharts() {
         const lakeNames = Object.keys(allEIseries);
-        // EI 图表
         const eiSeries = lakeNames.map((name, idx) => {
             const isCurrent = (currentMode === "single" && name === currentLakeName);
             let lineStyle = { width: 1.5, opacity: 0.7 };
             let color = colorPalette[idx % colorPalette.length];
             if (currentMode === "single") {
-                if (isCurrent) {
-                    lineStyle = { width: 3, color: '#E8A735', opacity: 1 };
-                } else {
-                    lineStyle = { width: 1, opacity: 0.25, color: '#B8C9AC' };
-                }
-            } else {
-                lineStyle = { width: 1.5, opacity: 0.8, color: color };
-            }
-            return {
-                name: name,
-                type: 'line',
-                data: allEIseries[name],
-                lineStyle: lineStyle,
-                symbol: 'circle',
-                symbolSize: isCurrent ? 6 : 3,
-                emphasis: { focus: 'series' }
-            };
+                if (isCurrent) { lineStyle = { width: 3, color: '#E8A735', opacity: 1 }; }
+                else { lineStyle = { width: 1, opacity: 0.25, color: '#B8C9AC' }; }
+            } else { lineStyle = { width: 1.5, opacity: 0.8, color: color }; }
+            return { name, type: 'line', data: allEIseries[name], lineStyle, symbol: 'circle', symbolSize: isCurrent ? 6 : 3 };
         });
-        eiLineChart.setOption({
-            series: eiSeries,
-            legend: { show: true, type: 'scroll', top: 0, right: 10, itemWidth: 25, pageIconColor: '#6A8E5C' },
-            grid: { top: 50, left: 50, right: 25, bottom: 25, containLabel: true }
-        });
-
-        // PI 图表
+        eiLineChart.setOption({ series: eiSeries, legend: { show: true, type: 'scroll', top: 0, right: 10 }, grid: { top: 50, left: 50, right: 25, bottom: 25, containLabel: true } });
         const piSeries = lakeNames.map((name, idx) => {
             const isCurrent = (currentMode === "single" && name === currentLakeName);
             let lineStyle = { width: 1.5, opacity: 0.7 };
             let color = colorPalette[idx % colorPalette.length];
             if (currentMode === "single") {
-                if (isCurrent) {
-                    lineStyle = { width: 3, color: '#E8A735', opacity: 1 };
-                } else {
-                    lineStyle = { width: 1, opacity: 0.25, color: '#B8C9AC' };
-                }
-            } else {
-                lineStyle = { width: 1.5, opacity: 0.8, color: color };
-            }
-            return {
-                name: name,
-                type: 'line',
-                data: allPIseries[name],
-                lineStyle: lineStyle,
-                symbol: 'circle',
-                symbolSize: isCurrent ? 6 : 3,
-                emphasis: { focus: 'series' }
-            };
+                if (isCurrent) { lineStyle = { width: 3, color: '#E8A735', opacity: 1 }; }
+                else { lineStyle = { width: 1, opacity: 0.25, color: '#B8C9AC' }; }
+            } else { lineStyle = { width: 1.5, opacity: 0.8, color: color }; }
+            return { name, type: 'line', data: allPIseries[name], lineStyle, symbol: 'circle', symbolSize: isCurrent ? 6 : 3 };
         });
-        piLineChart.setOption({
-            series: piSeries,
-            legend: { show: true, type: 'scroll', top: 0, right: 10, itemWidth: 25, pageIconColor: '#6A8E5C' },
-            grid: { top: 50, left: 50, right: 25, bottom: 25, containLabel: true }
-        });
+        piLineChart.setOption({ series: piSeries, legend: { show: true, type: 'scroll', top: 0, right: 10 }, grid: { top: 50, left: 50, right: 25, bottom: 25, containLabel: true } });
     }
 
+    // 更新散点图：显式设置数据
     function updateScatter() {
-        const points = lakesGlobal.map(l => ({ name: l.name, value: [l.ei, l.pi], d: l.d }));
+        if (!scatterChart) return;
+        if (!lakesGlobal.length) return;
+
+        const points = lakesGlobal.map(l => ({
+            name: l.name,
+            value: [l.ei, l.pi],
+            d: l.d
+        }));
+
         scatterChart.setOption({
             series: [{
                 data: points,
-                symbolSize: val => val.d * 35 + 8,
+                type: 'scatter',
+                symbolSize: function(val, params) {
+                    return (params.data.d * 18 + 5);
+                },
                 itemStyle: {
-                    color: (param) => {
-                        if (currentMode === "single" && param.data.name === currentLakeName) return '#E8A735';
-                        return param.data.d > 0.65 ? '#6A8E5C' : (param.data.d > 0.55 ? '#9ABF86' : '#C8A56A');
+                    color: function(params) {
+                        if (currentMode === "single" && params.data.name === currentLakeName) return '#E8A735';
+                        const d = params.data.d;
+                        if (d > 0.65) return '#6A8E5C';
+                        if (d > 0.55) return '#9ABF86';
+                        return '#C8A56A';
                     },
-                    borderColor: (param) => (currentMode === "single" && param.data.name === currentLakeName) ? '#2C3E2A' : 'none',
-                    borderWidth: 1.5,
-                    opacity: (currentMode === "single" && param.data.name !== currentLakeName) ? 0.5 : 1
+                    borderColor: function(params) {
+                        return (currentMode === "single" && params.data.name === currentLakeName) ? '#2C3E2A' : 'none';
+                    },
+                    borderWidth: 1.2,
+                    opacity: function(params) {
+                        if (currentMode === "single" && params.data.name !== currentLakeName) return 0.5;
+                        return 1;
+                    }
                 }
-            }],
-            legend: { show: false }
-        });
+            }]
+        }, { notMerge: false }); // 使用合并模式，保留原有轴配置
     }
 
     function refreshAllCharts() {
@@ -584,9 +245,8 @@
         updateScatter();
         updateKPI();
         if (currentMode === "single") updateScenarioBar();
-        const modeText = currentMode === "global" ? "全局视图" : `单湖: ${currentLakeName}`;
-        document.getElementById('ei-mode-badge').innerText = modeText;
-        document.getElementById('pi-mode-badge').innerText = modeText;
+        document.getElementById('ei-mode-badge').innerText = currentMode === "global" ? "全局视图" : `单湖: ${currentLakeName}`;
+        document.getElementById('pi-mode-badge').innerText = currentMode === "global" ? "全局视图" : `单湖: ${currentLakeName}`;
         document.getElementById('scatter-mode-badge').innerText = currentMode === "global" ? "全局视图" : "单湖高亮";
     }
 
@@ -606,28 +266,24 @@
     function initMap(lakes) {
         if (mapInstance) mapInstance.remove();
         mapInstance = L.map('map').setView([30.55, 114.35], 9);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(mapInstance);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(mapInstance);
         lakes.forEach(lake => {
             const color = lake.ei > 0.5 ? '#6A8E5C' : (lake.ei > 0.35 ? '#9ABF86' : '#C8A56A');
             const marker = L.circleMarker([lake.coord[1], lake.coord[0]], {
-                radius: 8 + lake.d * 10,
+                radius: 6 + lake.d * 8,
                 fillColor: color,
                 color: '#fff',
-                weight: 1.8,
+                weight: 1.5,
                 fillOpacity: 0.8
             }).addTo(mapInstance);
             marker.bindPopup(`<b>${lake.name}</b><br/>EI: ${lake.ei}<br/>PI: ${lake.pi}<br/>D: ${lake.d}`);
-            marker.on('click', () => {
-                switchToSingle(lake.name);
-                marker.openPopup();
-            });
+            marker.on('click', () => { switchToSingle(lake.name); marker.openPopup(); });
         });
     }
 
     async function loadAllData() {
         try {
+            // 1. 获取数据
             const lakesRes = await fetch('/api/lakes');
             lakesGlobal = await lakesRes.json();
             const eiTsRes = await fetch('/api/ei_timeseries');
@@ -638,52 +294,58 @@
             const piData = await piTsRes.json();
             piData.series.forEach(s => { allPIseries[s.name] = s.data; });
 
+            // 2. 初始化所有图表实例
             eiLineChart = echarts.init(document.getElementById('ei-line'));
             piLineChart = echarts.init(document.getElementById('pi-line'));
             scatterChart = echarts.init(document.getElementById('scatter-chart'));
 
-            // 箱线图配置（调整间距，向左下偏移）
+            // 3. 设置箱线图
             const boxRes = await fetch('/api/boxplot');
             const boxData = await boxRes.json();
             boxplotChart = echarts.init(document.getElementById('boxplot-chart'));
             boxplotChart.setOption({
                 tooltip: { trigger: 'item' },
-                xAxis: { type: 'category', data: boxData.quarters, axisLabel: { rotate: 30, fontSize: 9 } },
-                yAxis: { type: 'value', name: 'EI分布', nameLocation: 'middle', nameGap: 35 },
+                xAxis: { type: 'category', data: boxData.quarters, axisLabel: { rotate: 30 } },
+                yAxis: { type: 'value', name: 'EI分布', min: 0, max: 1.0 },
                 series: [{ name: 'EI', type: 'boxplot', data: boxData.data, itemStyle: { color: '#C2DFB0', borderColor: '#6A8E5C' } }],
                 grid: { top: 35, left: 55, right: 20, bottom: 25, containLabel: true }
             });
 
-            // 设置通用轴
+            // 4. 设置折线图基础轴（后续数据会由 refreshAllCharts 填充）
             const commonGrid = { top: 50, left: 55, right: 25, bottom: 25, containLabel: true };
             eiLineChart.setOption({
                 tooltip: { trigger: 'axis' },
-                xAxis: { type: 'category', data: quartersList, axisLabel: { rotate: 30, fontSize: 9 } },
-                yAxis: { type: 'value', name: 'EI', min: 0.15, max: 0.8 },
+                xAxis: { type: 'category', data: quartersList, axisLabel: { rotate: 30 } },
+                yAxis: { type: 'value', name: 'EI', min: 0, max: 1.0 },
                 grid: commonGrid
             });
             piLineChart.setOption({
                 tooltip: { trigger: 'axis' },
-                xAxis: { type: 'category', data: quartersList, axisLabel: { rotate: 30, fontSize: 9 } },
-                yAxis: { type: 'value', name: 'PI', min: 0.15, max: 0.7 },
+                xAxis: { type: 'category', data: quartersList, axisLabel: { rotate: 30 } },
+                yAxis: { type: 'value', name: 'PI', min: 0, max: 1.4 },
                 grid: commonGrid
             });
+
+            // 5. 设置散点图基础轴
             scatterChart.setOption({
                 tooltip: { formatter: params => `${params.data.name}<br/>EI: ${params.value[0]}<br/>PI: ${params.value[1]}<br/>D: ${params.data.d}` },
-                xAxis: { name: 'EI', min: 0.15, max: 0.75 },
-                yAxis: { name: 'PI', min: 0.15, max: 0.7 }
+                xAxis: { name: 'EI', min: 0, max: 1.0 },
+                yAxis: { name: 'PI', min: 0, max: 1.4 }
             });
 
+            // 6. 初始化地图和预警面板
             initMap(lakesGlobal);
             updateHoverPanel();
-            resetToGlobal(); // 默认全局模式，所有线条正常
+
+            // 7. 最后重置为全局模式，此时会调用 refreshAllCharts 填充所有图表数据
+            resetToGlobal();
         } catch (err) {
-            console.error(err);
+            console.error('数据加载失败', err);
             document.getElementById('hover-warning-list').innerHTML = '<div class="warning-item-panel">数据服务异常</div>';
         }
     }
 
-    // 智能诊断点击交互
+    // 诊断面板交互
     const diagBtn = document.getElementById('diagnosticTrigger');
     const diagPanel = document.getElementById('diagnosticPanel');
     function closePanelOnClickOutside(e) {
@@ -699,9 +361,7 @@
             document.removeEventListener('click', closePanelOnClickOutside);
         } else {
             diagPanel.classList.add('show');
-            setTimeout(() => {
-                document.addEventListener('click', closePanelOnClickOutside);
-            }, 0);
+            setTimeout(() => document.addEventListener('click', closePanelOnClickOutside), 0);
         }
     });
 
