@@ -25,10 +25,124 @@
         .diagnostic-btn-wrapper { position: relative; display: inline-block; }
         .diagnostic-btn { background: #FAFAF8; border: 1px solid #E0E8D8; padding: 0.5rem 1rem; border-radius: 40px; font-size: 0.8rem; font-weight: 500; color: #5F7E4A; cursor: pointer; display: flex; align-items: center; gap: 6px; }
         .diagnostic-btn i { color: #E8A735; }
-        .click-panel { position: absolute; top: 100%; right: 0; margin-top: 12px; width: 320px; background: #FAFAF8; border-radius: 20px; box-shadow: 0 12px 28px -8px rgba(0,0,0,0.08); padding: 1rem; z-index: 100; display: none; border: 1px solid #ECF1E6; }
+        .click-panel {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 12px;
+            width: 380px;
+            max-height: 85vh;
+            background: #FAFAF8;
+            border-radius: 24px;
+            box-shadow: 0 20px 32px -12px rgba(0,0,0,0.12);
+            z-index: 100;
+            display: none;
+            border: 1px solid #ECF1E6;
+            overflow-y: auto;
+            backdrop-filter: blur(2px);
+        }
         .click-panel.show { display: block; }
-        .warning-list-panel { max-height: 280px; overflow-y: auto; }
-        .warning-item-panel { background: #FFFCF5; padding: 0.6rem; margin-bottom: 0.6rem; border-radius: 12px; font-size: 0.7rem; border-left: 3px solid #C7A56B; }
+        .panel-section {
+            padding: 1rem;
+            border-bottom: 1px solid #ECF1E6;
+        }
+        .panel-section:last-child {
+            border-bottom: none;
+        }
+        .panel-section h4 {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #3C5E34;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-left: 3px solid #E8A735;
+            padding-left: 10px;
+        }
+        .warning-list-panel {
+            max-height: 240px;
+            overflow-y: auto;
+        }
+        .warning-item-panel {
+            background: #FFFCF5;
+            padding: 0.6rem;
+            margin-bottom: 0.6rem;
+            border-radius: 16px;
+            font-size: 0.7rem;
+            border-left: 3px solid #C7A56B;
+        }
+
+        .chat-row {
+            display: flex;
+            gap: 10px;
+            align-items: stretch;  /* 使子项高度相等 */
+        }
+        .chat-row .chat-input {
+            flex: 1;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+        .chat-row .chat-send-btn {
+            background: #6A8E5C;
+            border: none;
+            border-radius: 40px;
+            padding: 0 1rem;
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+            min-width: 60px;
+        }
+        .chat-row .chat-send-btn:hover {
+            background: #5A7F4A;
+        }
+
+        .chat-input {
+            width: 100%;
+            flex: 1;
+            border: 1px solid #E0E8D8;
+            border-radius: 40px;
+            padding: 0.5rem 1rem;
+            font-family: inherit;
+            font-size: 0.75rem;
+            resize: none;
+            background: #FFFFFF;
+        }
+        .chat-input:focus {
+            outline: none;
+            border-color: #9ABF86;
+        }
+        .chat-send-btn {
+            background: #6A8E5C;
+            border: none;
+            border-radius: 40px;
+            padding: 0 1rem;
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 0.75rem;
+        }
+        .chat-send-btn:hover {
+            background: #5A7F4A;
+        }
+        .chat-reply {
+            margin-top: 0.8rem;
+            background: #F4F8F0;
+            border-radius: 16px;
+            padding: 0.6rem;
+            font-size: 0.75rem;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
         .grid-main {
             display: grid;
             grid-template-areas:
@@ -55,7 +169,11 @@
         .scenario-bar { grid-area: scenario; background: #FAFAF8; border-radius: 24px; padding: 0.8rem 1.2rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
         .badge-light { background: #F0F5EC; padding: 0.2rem 0.6rem; border-radius: 40px; font-size: 0.65rem; color: #5F7E4A; cursor: pointer; border: none; }
         footer { margin-top: 2rem; text-align: center; font-size: 0.7rem; color: #9AAD8F; border-top: 1px solid #E0E8D8; padding-top: 1rem; }
-        @media (max-width: 1000px) { .grid-main { grid-template-areas: "kpi-left" "kpi-center" "kpi-right" "ei-chart" "pi-chart" "map" "boxplot" "scatter" "scenario"; grid-template-columns: 1fr; } .map-area { min-height: 380px; } }
+        @media (max-width: 1000px) {
+            .grid-main { grid-template-areas: "kpi-left" "kpi-center" "kpi-right" "ei-chart" "pi-chart" "map" "boxplot" "scatter" "scenario"; grid-template-columns: 1fr; }
+            .map-area { min-height: 380px; }
+            .click-panel { width: 90vw; right: 5%; left: 5%; }
+        }
     </style>
 </head>
 <body>
@@ -65,9 +183,21 @@
         <div class="diagnostic-btn-wrapper">
             <div class="diagnostic-btn" id="diagnosticTrigger"><i class="fas fa-brain"></i> 智能诊断 <i class="fas fa-chevron-down"></i></div>
             <div id="diagnosticPanel" class="click-panel">
-                <h4><i class="fas fa-robot"></i> 滞后预警 · 大模型诊断</h4>
-                <div id="hover-warning-list" class="warning-list-panel">加载中...</div>
-                <div style="font-size:0.7rem; color:#7C9A6E; margin-top:8px; border-top:1px solid #ECF1E6; padding-top:6px;"><i class="fas fa-microphone-alt"></i> 即将接入GPT对话式归因分析</div>
+                <!-- 预警列表区域 -->
+                <div class="panel-section">
+                    <h4><i class="fas fa-exclamation-triangle"></i> 滞后预警列表</h4>
+                    <div id="hover-warning-list" class="warning-list-panel">加载中...</div>
+                </div>
+                <!-- 大模型对话区域 -->
+               <div class="panel-section">
+                   <h4><i class="fas fa-robot"></i> 智能诊断助手</h4>
+                   <div class="chat-row">
+                       <textarea id="chat-input" class="chat-input" rows="2" placeholder="例如：墨水湖生态现状如何？请详细分析。"></textarea>
+                       <button id="chat-send" class="chat-send-btn">发送</button>
+                   </div>
+                   <div id="chat-reply" class="chat-reply">等待提问...</div>
+                   <div style="font-size:0.65rem; color:#9AB186; margin-top:6px;">模型响应约需30秒，请耐心等待</div>
+               </div>
             </div>
         </div>
     </div>
@@ -86,7 +216,8 @@
 
         <div class="scenario-bar"><div class="scenario-info"><i class="fas fa-flask" style="color:#E8A735;"></i> <strong>典型湖泊场景模拟</strong> — 当前关注: <span id="scenario-lake-name">东湖</span></div><div id="scenario-text" class="scenario-detail-text">点击地图上的湖泊标记，查看详细生态-感知动态及滞后评估。</div><button id="reset-global" class="badge-light">重置全局视图</button></div>
     </div>
-    <footer>xxxx队</footer>
+
+    <footer>湖见未来队</footer>
 </div>
 
 <script>
@@ -115,7 +246,6 @@
         }, stepTime);
     }
 
-    // 更新 KPI
     function updateKPI() {
         let eiVal, piVal, dVal;
         if (currentMode === "global") {
@@ -201,17 +331,10 @@
         piLineChart.setOption({ series: piSeries, legend: { show: true, type: 'scroll', top: 0, right: 10 }, grid: { top: 50, left: 50, right: 25, bottom: 25, containLabel: true } });
     }
 
-    // 更新散点图：显式设置数据
     function updateScatter() {
         if (!scatterChart) return;
         if (!lakesGlobal.length) return;
-
-        const points = lakesGlobal.map(l => ({
-            name: l.name,
-            value: [l.ei, l.pi],
-            d: l.d
-        }));
-
+        const points = lakesGlobal.map(l => ({ name: l.name, value: [l.ei, l.pi], d: l.d }));
         scatterChart.setOption({
             series: [{
                 data: points,
@@ -237,7 +360,7 @@
                     }
                 }
             }]
-        }, { notMerge: false }); // 使用合并模式，保留原有轴配置
+        });
     }
 
     function refreshAllCharts() {
@@ -283,7 +406,6 @@
 
     async function loadAllData() {
         try {
-            // 1. 获取数据
             const lakesRes = await fetch('/api/lakes');
             lakesGlobal = await lakesRes.json();
             const eiTsRes = await fetch('/api/ei_timeseries');
@@ -294,12 +416,10 @@
             const piData = await piTsRes.json();
             piData.series.forEach(s => { allPIseries[s.name] = s.data; });
 
-            // 2. 初始化所有图表实例
             eiLineChart = echarts.init(document.getElementById('ei-line'));
             piLineChart = echarts.init(document.getElementById('pi-line'));
             scatterChart = echarts.init(document.getElementById('scatter-chart'));
 
-            // 3. 设置箱线图
             const boxRes = await fetch('/api/boxplot');
             const boxData = await boxRes.json();
             boxplotChart = echarts.init(document.getElementById('boxplot-chart'));
@@ -311,7 +431,6 @@
                 grid: { top: 35, left: 55, right: 20, bottom: 25, containLabel: true }
             });
 
-            // 4. 设置折线图基础轴（后续数据会由 refreshAllCharts 填充）
             const commonGrid = { top: 50, left: 55, right: 25, bottom: 25, containLabel: true };
             eiLineChart.setOption({
                 tooltip: { trigger: 'axis' },
@@ -325,25 +444,62 @@
                 yAxis: { type: 'value', name: 'PI', min: 0, max: 1.4 },
                 grid: commonGrid
             });
-
-            // 5. 设置散点图基础轴
             scatterChart.setOption({
                 tooltip: { formatter: params => `${params.data.name}<br/>EI: ${params.value[0]}<br/>PI: ${params.value[1]}<br/>D: ${params.data.d}` },
                 xAxis: { name: 'EI', min: 0, max: 1.0 },
                 yAxis: { name: 'PI', min: 0, max: 1.4 }
             });
 
-            // 6. 初始化地图和预警面板
             initMap(lakesGlobal);
             updateHoverPanel();
-
-            // 7. 最后重置为全局模式，此时会调用 refreshAllCharts 填充所有图表数据
             resetToGlobal();
         } catch (err) {
             console.error('数据加载失败', err);
             document.getElementById('hover-warning-list').innerHTML = '<div class="warning-item-panel">数据服务异常</div>';
         }
     }
+
+    // 聊天功能
+    const chatInput = document.getElementById('chat-input');
+    const chatSend = document.getElementById('chat-send');
+    const chatReply = document.getElementById('chat-reply');
+
+    async function sendMessage() {
+        const message = chatInput.value.trim();
+        if (!message) return;
+        chatReply.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> 思考中...';
+        chatInput.disabled = true;
+        chatSend.disabled = true;
+        try {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: message })
+            });
+            const data = await response.json();
+            if (data.reply) {
+                chatReply.innerHTML = data.reply.replace(/\n/g, '<br>');
+            } else if (data.error) {
+                chatReply.innerHTML = `<span style="color:#C06947;">错误: ${data.error}</span>`;
+            } else {
+                chatReply.innerHTML = '<span style="color:#C06947;">未知错误，请稍后重试。</span>';
+            }
+        } catch (err) {
+            chatReply.innerHTML = `<span style="color:#C06947;">网络错误: ${err.message}</span>`;
+        } finally {
+            chatInput.disabled = false;
+            chatSend.disabled = false;
+            chatInput.focus();
+        }
+    }
+
+    chatSend.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
 
     // 诊断面板交互
     const diagBtn = document.getElementById('diagnosticTrigger');

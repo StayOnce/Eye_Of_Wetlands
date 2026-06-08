@@ -1,6 +1,11 @@
 import json
 import os
-from flask import Flask, render_template, jsonify
+import re
+from flask import Flask, render_template, jsonify,request
+from tencentcloud.common import credential
+from tencentcloud.common.exception.tencent_cloud_sdk_exception import TencentCloudSDKException
+from tencentcloud.lkeap.v20240522 import lkeap_client, models
+
 app = Flask(__name__)
 
 # 加载数据
@@ -12,6 +17,7 @@ quarters = data['quarters']
 lakes = data['lakes']
 ei_series = data['ei_series']
 pi_series = data['pi_series']
+lake_dict = {lake['name']: lake for lake in lakes}
 
 # 辅助函数：计算箱线图数据（按季度聚合所有湖泊EI）
 def compute_boxplot_data():
@@ -119,6 +125,128 @@ def lake_detail(lake_name):
         "quarters": quarters[-3:],
         "coord": lake["coord"]
     })
+
+# ========== 新增：大模型对话接口 ==========
+def remove_markdown(text: str) -> str:
+    """移除常见的 Markdown 格式标记，保留纯文本"""
+    # 移除加粗 **text** 或 __text__
+    text = re.sub(r'\*\*(.*?)\*\*', r'\1', text)
+    text = re.sub(r'__(.*?)__', r'\1', text)
+    # 移除斜体 *text* 或 _text_
+    text = re.sub(r'\*(.*?)\*', r'\1', text)
+    text = re.sub(r'_(.*?)_', r'\1', text)
+    # 移除行内代码 `code`
+    text = re.sub(r'`(.*?)`', r'\1', text)
+    # 移除链接 [text](url)
+    text = re.sub(r'\[(.*?)\]\(.*?\)', r'\1', text)
+    # 移除标题标记 # ## 等
+    text = re.sub(r'^#+\s*', '', text, flags=re.MULTILINE)
+    # 移除列表标记 - 或 *
+    text = re.sub(r'^[\-\*]\s+', '', text, flags=re.MULTILINE)
+    return text
+
+@app.route('/api/chat', methods=['POST'])
+def chat():
+    data = request.get_json()
+    user_message = data.get('message', '').strip()
+    if not user_message:
+        return jsonify({'error': '消息不能为空'}), 400
+
+    # 提取上下文
+    lake_context = get_lake_context(user_message)
+    # 如果用户没有提及具体湖泊，但询问的是全局问题（如“平均”、“哪个最”），则提供全局摘要
+    global_keywords = ['平均', '所有', '哪个', '最高', '最低', '排名', '比较']
+    if not lake_context and any(kw in user_message for kw in global_keywords):
+        lake_context = get_global_summary()
+
+    # 构建系统提示
+    system_prompt = """你是湿地生态专家。请基于以下提供的真实数据回答用户问题。
+如果数据中没有相关信息，请使用你的知识回答，但不要编造具体数字。
+回答时使用纯文本，不要使用任何Markdown语法（如**加粗**、`代码块`、列表标记等）。
+直接输出自然语言段落。"""
+    if lake_context:
+        system_prompt += f"\n\n以下是与用户问题相关的湖泊数据：\n{lake_context}\n"
+
+    # 调用腾讯云大模型
+    secret_id = os.environ.get("TENCENT_SECRET_ID")
+    secret_key = os.environ.get("TENCENT_SECRET_KEY")
+    if not secret_id or not secret_key:
+        return jsonify({'error': '服务器未配置腾讯云密钥'}), 500
+
+    try:
+        from tencentcloud.common import credential
+        from tencentcloud.common.exception.tencent_cloud_sdk_exception import TencentCloudSDKException
+        from tencentcloud.lkeap.v20240522 import lkeap_client, models
+
+        cred = credential.Credential(secret_id, secret_key)
+        client = lkeap_client.LkeapClient(cred, "ap-guangzhou")
+
+        req = models.ChatCompletionsRequest()
+        params = {
+            "Model": "deepseek-r1",   # 或 "hunyuan-lite" 更快
+            "Messages": [
+                {"Role": "system", "Content": system_prompt},
+                {"Role": "user", "Content": user_message}
+            ],
+            "Stream": False
+        }
+        req.from_json_string(json.dumps(params))
+        resp = client.ChatCompletions(req)
+        raw_reply = resp.Choices[0].Message.Content
+        clean_reply = remove_markdown(raw_reply)
+        return jsonify({'reply': clean_reply})
+    except TencentCloudSDKException as err:
+        return jsonify({'error': f'腾讯云API错误: {err}'}), 500
+    except Exception as e:
+        return jsonify({'error': f'服务器内部错误: {str(e)}'}), 500
+
+def get_lake_context(user_query: str) -> str:
+    """根据用户问题中的湖泊名，返回该湖泊的详细数据摘要"""
+    # 找出问题中出现的湖泊名称
+    mentioned = [name for name in lake_dict.keys() if name in user_query]
+    if not mentioned:
+        return ""  # 未提及任何湖泊，返回空
+
+    context_parts = []
+    for lake_name in mentioned:
+        lake = lake_dict[lake_name]
+        ei_vals = ei_series[lake_name]
+        pi_vals = pi_series[lake_name]
+        # 最近四个季度的数据
+        recent_quarters = quarters[-4:] if len(quarters) >= 4 else quarters
+        recent_ei = ei_vals[-4:] if len(ei_vals) >= 4 else ei_vals
+        recent_pi = pi_vals[-4:] if len(pi_vals) >= 4 else pi_vals
+
+        trend_lines = []
+        for q, ei, pi in zip(recent_quarters, recent_ei, recent_pi):
+            trend_lines.append(f"{q}: EI={ei:.3f}, PI={pi:.3f}")
+        trend_str = "；".join(trend_lines)
+
+        context = f"""
+        湖泊：{lake_name}
+        类型：{lake.get('type', '未知')}
+        最新季度 EI：{lake['ei']:.3f}
+        最新季度 PI：{lake['pi']:.3f}
+        耦合协调度 D：{lake['d']:.3f}
+        近四季趋势：{trend_str}"""
+        context_parts.append(context)
+
+    return "\n".join(context_parts)
+
+
+def get_global_summary() -> str:
+    """返回所有湖泊的统计摘要（当用户问全局问题时使用）"""
+    avg_ei = sum(l['ei'] for l in lakes) / len(lakes)
+    avg_pi = sum(l['pi'] for l in lakes) / len(lakes)
+    best_d = max(lakes, key=lambda x: x['d'])
+    worst_d = min(lakes, key=lambda x: x['d'])
+    return f"""
+所有湖泊统计：
+- 平均 EI：{avg_ei:.3f}
+- 平均 PI：{avg_pi:.3f}
+- 耦合协调度最高的湖泊：{best_d['name']}（D={best_d['d']:.3f}）
+- 耦合协调度最低的湖泊：{worst_d['name']}（D={worst_d['d']:.3f}）
+"""
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
