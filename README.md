@@ -3,7 +3,6 @@
 [![Flask](https://img.shields.io/badge/Flask-2.3.3-blue.svg)](https://flask.palletsprojects.com/)
 [![ECharts](https://img.shields.io/badge/ECharts-5.5.0-green.svg)](https://echarts.apache.org/)
 [![Leaflet](https://img.shields.io/badge/Leaflet-1.9.4-brightgreen.svg)](https://leafletjs.com/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 > **2026年（第19届）中国大学生计算机设计大赛 · 大数据实践赛作品**  
 > 作品编号：2026030772 | 团队：湖见未来队 | 省级二等奖
